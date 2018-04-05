@@ -1,0 +1,28 @@
+const mongoose = require('mongoose')
+const User = mongoose.model('User')
+const Skill = mongoose.model('Skill')
+
+module.exports = (req, res) => {
+    "use strict"
+    User
+        .findOne({username: req.params.username})
+        .then(user => {
+
+            Skill.create(req.body)
+                .then(skill => {
+                    try {
+                        user.skills.push(skill._id)
+                        user.save()
+                    }catch (ex){
+                        skill.delete()
+                        skill.save()
+                    }
+                })
+                .catch(err => {
+                    console.log(err)
+                })
+        })
+        .catch(err => {
+            console.log(err)
+        })
+}

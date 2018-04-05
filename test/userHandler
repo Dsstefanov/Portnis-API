@@ -1,0 +1,174 @@
+process.env.NODE_ENV = 'test'
+
+const mongoose = require('mongoose')
+const chai = require('chai');
+const chaiHttp = require('chai-http')
+const server = require('../bin/www')
+const should = chai.should()
+const User = mongoose.models.User
+const Project = mongoose.models.Project
+const SocialMedias = mongoose.models.SocialMedias
+const Contact = mongoose.models.Contact
+const Skill = mongoose.models.Skill
+
+
+chai.use(chaiHttp)
+const url = '/users/Test'
+
+describe('' + url, () => {
+    "use strict"
+    beforeEach('clean DB', (done) => {
+        cleanDB(done)
+    })
+    after('cleanDB after last test', done => {
+        cleanDB(done)
+    })
+
+    it('should return user with all properties', (done) => {
+        Skill.create(getSkill())
+            .then((skill) => {
+                Contact.create(getContact())
+                    .then(contact => {
+                        SocialMedias.create(getSocialMedias())
+                            .then(socialMedias => {
+                                Project.create(getProject())
+                                    .then(project => {
+                                        let user = getUser()
+                                        user.projects = []
+                                        user.socialMedias = []
+                                        user.projects.push(project._id)
+                                        user.socialMedias.push(socialMedias._id)
+                                        user.contact = contact._id
+                                        user.skills = skill
+
+                                        User.create(user)
+                                            .then(() => {
+                                                chai.request(server)
+                                                    .get(url)
+                                                    .end((err, res) => {
+                                                        should.not.exist(err)
+                                                        res.body.should.be.an('object')
+                                                        res.body.should.have.property('projects')
+                                                        res.body.projects.should.be.an('array')
+                                                        res.body.projects[0].should.have
+                                                            .property('title')
+                                                            .eql(getProject().title)
+                                                        res.body.projects[0].should.have
+                                                            .property('description')
+                                                            .eql(getProject().description)
+                                                        res.body.projects[0].should.have
+                                                            .property('technologies')
+                                                            .eql(getProject().technologies)
+                                                        res.body.projects[0].should.have
+                                                            .property('githubLink')
+                                                            .eql(getProject().githubLink)
+                                                        res.body.projects[0].should.have
+                                                            .property('buildingReason')
+                                                            .eql(getProject().buildingReason)
+
+                                                        res.body.should.have.property('socialMedias').be.an('object')
+                                                        res.body.socialMedias.should.have
+                                                            .property('github')
+                                                            .eql(getSocialMedias().github)
+                                                        res.body.socialMedias.should.have
+                                                            .property('linkedIn')
+                                                            .eql(getSocialMedias().linkedIn)
+                                                        res.body.socialMedias.should.have
+                                                            .property('facebook')
+                                                            .eql(getSocialMedias().facebook)
+
+                                                        res.body.should.have.property('contact')
+                                                        res.body.contact.should.have
+                                                            .property('address')
+                                                            .eql(getContact().address)
+                                                        res.body.contact.should.have
+                                                            .property('phone')
+                                                            .eql(getContact().phone)
+
+                                                        res.body.should.have.property('skills').be.an('array')
+                                                        res.body.skills[0].should.have
+                                                            .property('description')
+                                                            .eql(getSkill().description)
+                                                        res.body.skills[0].should.have
+                                                            .property('titleColor')
+                                                            .eql(getSkill().titleColor)
+                                                        res.body.skills[0].should.have
+                                                            .property('name')
+                                                            .eql(getSkill().name)
+                                                        res.body.skills[0].should.have
+                                                            .property('barColor')
+                                                            .eql(getSkill().barColor)
+                                                        res.body.skills[0].should.have
+                                                            .property('percentage')
+                                                            .eql(getSkill().percentage)
+
+                                                        done()
+                                                    })
+                                            })
+                                    })
+                            })
+                    })
+            })
+    })
+})
+
+function getProject() {
+    return {
+        title: 'Test',
+        description: 'long text test',
+        technologies: ['PHP', 'JavaScript'],
+        githubLink: 'https://github.com/Dsstefanov/StudyLife',
+        buildingReason: 'Just Test'
+    }
+}
+
+function getUser() {
+    return {
+        username: 'Test',
+        valid: false
+    }
+}
+
+function getSkill() {
+    return {
+        name: 'Javascript',
+        percentage: 50,
+        description: 'Test description',
+        titleColor: '#fafafa',
+        barColor: '#333333'
+    }
+}
+
+function getContact() {
+    return {
+        address: 'Christiansgade 1b sal 3',
+        phone: '53337660'
+    }
+}
+
+function getSocialMedias() {
+    return {
+        facebook: 'Facebook',
+        linkedIn: 'LinkedIn',
+        github: 'GitHub'
+    }
+}
+
+const cleanDB = (done) => {
+    Skill.remove({})
+        .then(() => {
+            Contact.remove({})
+                .then(() => {
+                    Project.remove({})
+                        .then(() => {
+                            SocialMedias.remove({})
+                                .then(() => {
+                                    User.remove({})
+                                        .then(() => {
+                                            done()
+                                        })
+                                })
+                        })
+                })
+        })
+}
