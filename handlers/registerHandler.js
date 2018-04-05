@@ -5,22 +5,26 @@ const User = require('./../models/UserSchema')
 module.exports = (req, res) => {
     "use strict"
 
-    let user = req.body
-    RegisteredUser.create(user)
-        .then((resUser) => {
+    let reqUser = req.body
+    RegisteredUser.create(reqUser)
+        .then((dbRegUser) => {
             User.create({valid: false})
-                .then(responseObject => {
-                    user.userId = responseObject._id
-                    RegisteredUser.findOneAndUpdate({_id: user._id}, user)
-                    let json = {
-                        success: "User successfully created!"
-                    }
-                    res.json(json)
+                .then(dbUser => {
+                    dbRegUser.userId = dbUser._id
+                  RegisteredUser.findOneAndUpdate({_id: dbRegUser._id}, dbRegUser)
+                      .then(() => {
+                        let json = {
+                          success: "User successfully created!"
+                        }
+                        res.json(json)
+                      })
+                      .catch(() => {
+                        console.log('deiba')
+                      })
                 })
                 .catch(err => {
                     console.log(err)
-                    RegisteredUser.remove({_id: resUser._id})
-                        .then()
+                    RegisteredUser.remove({_id: dbRegUser._id})
                 })
         })
         .catch(ex => {
