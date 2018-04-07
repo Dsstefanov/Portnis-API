@@ -21,7 +21,7 @@ mongoose.connect(config.DBHost, options)
         console.log("MongoDB is offline!")
         console.log(ex.message)
     })
-
+mongoose.set('useFindAndModify', false)
 if (config.util.getEnv('NODE_ENV') !== 'test') {
     app.use(morgan('combined'))
 }

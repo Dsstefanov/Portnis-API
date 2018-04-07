@@ -4,7 +4,6 @@ const User = require('./../models/UserSchema')
 
 module.exports = (req, res) => {
     "use strict"
-
     let reqUser = req.body
     RegisteredUser.create(reqUser)
         .then((dbRegUser) => {
@@ -17,9 +16,6 @@ module.exports = (req, res) => {
                           success: "User successfully created!"
                         }
                         res.json(json)
-                      })
-                      .catch(() => {
-                        console.log('deiba')
                       })
                 })
                 .catch(err => {

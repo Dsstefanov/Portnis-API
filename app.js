@@ -44,12 +44,14 @@ app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
     res.header("Access-Control-Allow-Methods", 'GET, POST, PUT, DELETE')
     res.header["Access-Control-Allow-Headers"] = "X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept"
+    res.header("Access-Control-Allow-Credentials", true)
     next()
 })
 
 //static post routes
 app.post('/users/auth/login', login)
 app.post('/users/auth/register', register)
+app.post('/users/delete', user)
 
 //dynamic post routes
 app.post('/users/id/:id/user', updateUser)
@@ -72,9 +74,11 @@ app.use(function (req, res, next) {
 
 // error handler
 app.use(function (err, req, res, next) {
+  console.log(err)
     // logging server errors
     if(err.status >= 500){
-        fs.appendFile('errors.log', '\n\n\n' + err);
+      console.log(err.message)
+      fs.appendFile('errors.log', '\n\n\n' + err);
     }
     // set locals, only providing error in development
     res.locals.message = err.message
@@ -83,7 +87,7 @@ app.use(function (err, req, res, next) {
 
     // render the error page
     res.status(err.status || 500)
-    res.render('error')
+    res.json('error')
 })
 
 module.exports = app
